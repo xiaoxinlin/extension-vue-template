@@ -2,15 +2,15 @@
     <div class="main_app">
         <h1>网络请求拦截规则配置</h1>
         <div>
-            <el-button type="primary" @click="addOne()">添加</el-button>
-            <el-button type="primary" @click="openOptions()">选项</el-button>
+            <el-button size="small" type="primary" @click="addOne()" icon="el-icon-circle-plus-outline">添加</el-button>
+            <el-button size="small" type="primary" @click="openOptions()" icon="el-icon-setting">选项</el-button>
         </div>
         <el-table ref="multipleTable" :data="tableData" tooltip-effect="dark" style="width: 700px" max-height="400"
             @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="50"> </el-table-column>
             <el-table-column label="规则" width="400">
                 <template slot-scope="scope">
-                    <el-input v-model="scope.row.rule" placeholder="请输入内容" @change="handleInputChange(scope.row)">
+                    <el-input v-model="scope.row.rule" size="small" placeholder="请输入内容" @change="handleInputChange(scope.row)">
                     </el-input>
                 </template>
             </el-table-column>
@@ -26,13 +26,13 @@
                     <el-button v-if="scope.row.enabled" size="mini" @click="toggleStatus([scope.row], false)">禁用
                     </el-button>
                     <el-button v-else size="mini" @click="toggleStatus([scope.row], true)">启用</el-button>
-                    <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+                    <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)" >删除</el-button>
                 </template>
             </el-table-column>
         </el-table>
         <div class="footer">
-            <el-button @click="toggleStatus(multipleSelection, true)">批量启用</el-button>
-            <el-button type="danger" @click="toggleStatus(multipleSelection, false)">批量禁用</el-button>
+            <el-button size="small" type="success" @click="toggleStatus(multipleSelection, true)">批量启用</el-button>
+            <el-button size="small" type="danger" @click="toggleStatus(multipleSelection, false)">批量禁用</el-button>
         </div>
         <el-dialog title="提示" :visible.sync="dialogVisible" width="80%">
             <div class="jsoneditor" ref="jsoneditor"></div>

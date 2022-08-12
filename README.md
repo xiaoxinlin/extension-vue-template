@@ -1,5 +1,5 @@
 # extension-vue-template
-`vue-cli3` + `webpack4` + `element-ui`  实现编译打包Chrome浏览器插件
+`vue-cli3` + `webpack4` + `element-ui`  实现编译打包Chrome浏览器网络拦截插件
 
 ### content 文件夹
 作用于浏览网页，对打开的网页进行插入、修改 DOM ，对其进行操作交互

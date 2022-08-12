@@ -31,6 +31,10 @@ plugins.push(
         {
             from: path.resolve('src/utils/background.js'),
             to: path.resolve('dist')
+        },
+        {
+            from: path.resolve('src/assets/icons'),
+            to: path.resolve('dist/icons')
         }
     ])
 )

@@ -1,9 +1,12 @@
 {
     "manifest_version": 2,
-    "name": "vue-extension",
-    "description": "a chrome extension with vue-cli3",
+    "name": "网络拦截插件",
+    "description": "基于vue2的一个简单网络拦截插件",
     "version": "0.0.1",
     "options_page": "options.html",
+    "icons": {
+        "48": "icons/icon-48.png"
+    },
     "browser_action": {
         "default_popup": "popup.html"
     },
