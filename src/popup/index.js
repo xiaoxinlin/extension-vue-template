@@ -1,4 +1,4 @@
-import { Button, Card, Table, TableColumn, Input, Tag } from 'element-ui'
+import { Button, Card, Table, TableColumn, Input, Tag, Dialog } from 'element-ui'
 import Vue from 'vue'
 import AppComponent from './App/App.vue'
 
@@ -10,6 +10,7 @@ Vue.use(Table)
 Vue.use(TableColumn)
 Vue.use(Input)
 Vue.use(Tag)
+Vue.use(Dialog)
 
 // eslint-disable-next-line no-new
 new Vue({
