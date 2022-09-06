@@ -6,18 +6,25 @@
         <div style="margin-top: 16px" v-if="isHomePage">
             <el-button round @click="startFunc" type="success" v-if="autoMonitoringFlag === 0">启动监控</el-button>
             <el-button round @click="stopFunc" type="danger" v-else>停止监控</el-button>
+            <el-button round @click="handleAmountAsync" type="primary">值校准</el-button>
             <el-button round @click="handleClick" type="primary">配置</el-button>
             <el-dialog title="配置" :visible.sync="showTable" width="30%">
                 <h4>开启监控时，待支付跟支付金额得保持跟实时数据一样，不然可能会有bug</h4>
-                <el-form ref="form" :model="formData" label-width="100px" size="mini">
+                <el-form ref="form" :model="formData" label-width="120px" size="mini">
                     <el-form-item label="待支付">
                         <el-input v-model="formData.willPayOrder"></el-input>
+                    </el-form-item>
+                    <el-form-item label="待发货">
+                        <el-input v-model="formData.willDeliveryOrder"></el-input>
                     </el-form-item>
                     <el-form-item label="支付金额">
                         <el-input v-model="formData.amount"></el-input>
                     </el-form-item>
                     <el-form-item label="刷新时间间隔">
-                        <el-input v-model="formData.delay"></el-input>
+                        <el-input v-model="formData.delay" placeholder="单位：毫秒"></el-input>
+                    </el-form-item>
+                    <el-form-item label="标签页调用间隔">
+                        <el-input v-model="formData.invokeInterval" placeholder="单位：毫秒"></el-input>
                     </el-form-item>
                 </el-form>
                 <span slot="footer" class="dialog-footer">
@@ -32,6 +39,7 @@
 <script>
 import '@/assets/less/index.less'
 const DEFAULT_DELAY = 7000
+const DEFAULT_INVOKE_INTERVAL = 600
 export default {
     name: 'app',
     components: {},
@@ -42,12 +50,15 @@ export default {
             autoMonitoringFlag: 0,
             timer: null,
             willPayOrder: '0',
+            willDeliveryOrder: '0',
             amount: '0',
             delay: DEFAULT_DELAY,
             formData: {
                 willPayOrder: '0',
+                willDeliveryOrder: '0',
                 amount: '0',
-                delay: 0
+                delay: 0,
+                invokeInterval: 0
             },
             isHomePage: location.href.includes('mms.pinduoduo.com/home')
         }
@@ -64,9 +75,11 @@ export default {
             this.storeName = document.querySelector('div.user-info-top > div.user-name > p.name').innerText
         }
 
-        // 待支付单数
-        if (document.querySelector('.top-data-panel__card__value')) {
-            this.willPayOrder = document.querySelector('.top-data-panel__card__value').innerText
+        // 待支付单数、待发货数
+        if (document.querySelectorAll('.top-data-panel__card__value').length > 0) {
+            const nodeList = document.querySelectorAll('.top-data-panel__card__value')
+            this.willPayOrder = nodeList[0].innerText
+            this.willDeliveryOrder = nodeList[1].innerText
         }
 
         // 支付金额
@@ -74,15 +87,16 @@ export default {
             this.amount = document.querySelector('.manage-data__panel__card__content_val').innerText
         }
 
-        window.chrome.storage.local.get(['autoMonitoringFlag', 'willPayOrder', 'amount', 'delay'], data => {
+        window.chrome.storage.local.get(['autoMonitoringFlag', 'willPayOrder', 'willDeliveryOrder', 'amount', 'delay'], data => {
             console.log('local', data)
-            if (!data.willPayOrder || !data.amount) {
+            if (!data.willPayOrder || !data.amount || !data.willDeliveryOrder) {
                 console.log('init')
                 // 初始化数据
                 this.delay = DEFAULT_DELAY
                 window.chrome.runtime.sendMessage({
                     type: 'init',
                     willPayOrder: this.willPayOrder,
+                    willDeliveryOrder: this.willDeliveryOrder,
                     amount: this.amount,
                     delay: this.delay
                 })
@@ -92,11 +106,12 @@ export default {
 
             if (this.autoMonitoringFlag === 1) {
                 // 监测数据是否更新
-                if (this.willPayOrder > data.willPayOrder || this.amount > data.amount) {
+                if (this.willPayOrder > data.willPayOrder || this.amount > data.amount || this.willDeliveryOrder > data.willDeliveryOrder) {
                     this.autoMonitoringFlag = 0
                     // 更新缓存
                     window.chrome.storage.local.set({
                         willPayOrder: this.willPayOrder,
+                        willDeliveryOrder: this.willDeliveryOrder,
                         amount: this.amount,
                         autoMonitoringFlag: 0
                     })
@@ -133,8 +148,8 @@ export default {
     },
     methods: {
         handleClick() {
-            window.chrome.storage.local.get(['willPayOrder', 'amount', 'delay'], data => {
-                this.formData = data
+            window.chrome.storage.local.get(['willPayOrder', 'willDeliveryOrder', 'amount', 'delay', 'invokeInterval'], data => {
+                this.formData = Object.assign({ invokeInterval: DEFAULT_INVOKE_INTERVAL }, data)
             })
             this.toggleTable(true)
         },
@@ -165,14 +180,24 @@ export default {
         toggleTable(status) {
             this.showTable = status
         },
+        handleAmountAsync() {
+            const nodeList = document.querySelectorAll('.top-data-panel__card__value')
+            window.chrome.storage.local.set({
+                willPayOrder: nodeList[0].innerText,
+                willDeliveryOrder: nodeList[1].innerText,
+                amount: document.querySelector('.manage-data__panel__card__content_val').innerText
+            })
+            this.$message({
+                message: '校准成功！',
+                type: 'success'
+            })
+        },
         async handleSubmit() {
             console.log('init')
             // 初始化数据
             window.chrome.runtime.sendMessage({
                 type: 'init',
-                willPayOrder: this.formData.willPayOrder,
-                amount: this.formData.amount,
-                delay: this.formData.delay
+                ...this.formData
             })
             this.toggleTable(false)
             this.$message({
