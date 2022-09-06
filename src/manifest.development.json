@@ -13,11 +13,12 @@
     "background": {
         "scripts": ["hot-reload.js", "background.js"]
     },
-    "permissions": ["webRequest", "storage", "webRequestBlocking", "<all_urls>"],
+    "permissions": ["webRequest", "storage", "webRequestBlocking", "tabs", "notifications", "<all_urls>"],
     "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
     "content_scripts": [{
         "matches": [
-            "*://*.baidu.com/*"
+            "*://mms.pinduoduo.com/home*",
+            "*://yingxiao.pinduoduo.com/marketing/main/center/odin/list*"
         ],
         "css": [
             "css/content.css"

@@ -1,5 +1,5 @@
 {
-    "extends": ["lcy-vue"],
+    "extends": ["plugin:vue/recommended", "eslint:recommended"],
     "rules": {
         "no-irregular-whitespace": 0,
         "prettier/prettier": "off"

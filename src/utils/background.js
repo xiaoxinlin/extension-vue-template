@@ -38,3 +38,34 @@ chrome.storage.onChanged.addListener(changeData => {
     let blockedHosts = changeData.blockedHosts.newValue
     updateFilter(blockedHosts.filter(i => i.enabled).map(i => i.rule))
 })
+
+const stopFunc = () => {
+    window.chrome.tabs.query({}, tabs => {
+        if (!!tabs.length) {
+            tabs.forEach((tab, index) => {
+                if (tab.url.includes('yingxiao.pinduoduo.com/marketing/main/center/odin/list')) {
+                    window.chrome.tabs.executeScript(
+                        tab.id,
+                        {
+                            code: `setTimeout(() => document.querySelector('.anq-modal-foot>.anq-btn-primary').click(), ${index * 400 + 100});`
+                        }
+                    )
+                }
+            })
+        }
+    })
+}
+
+function executeScript (obj) {
+    console.log('bg', window.chrome.tabs, obj)
+    if (obj.type === 'init') {
+        window.chrome.storage.local.set({
+            willPayOrder: obj.willPayOrder,
+            amount: obj.amount,
+            delay: obj.delay
+        })
+    } else if (obj.type === 'stop') {
+        stopFunc()
+    }
+}
+window.chrome.runtime.onMessage.addListener(executeScript)
