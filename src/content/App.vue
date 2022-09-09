@@ -122,7 +122,7 @@ export default {
 
                     // 消息提醒
                     this.$notify({
-                        title: '已触发停车',
+                        title: `${new Date().toLocaleTimeString()}已触发停车`,
                         message: '记得检查直通车状态，以及重启起保证配置数据跟实时数据一致',
                         duration: 0,
                         offset: 150,
@@ -135,7 +135,7 @@ export default {
                             body: '店铺中奖了，快点去看吧！'
                         })
                         // 通过弹新链接来唤醒窗口
-                        window.open('//www.baidu.com')
+                        // window.open('//www.baidu.com')
                     }
                 } else {
                     // 没有数据更新继续监控
