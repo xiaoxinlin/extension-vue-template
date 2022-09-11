@@ -135,7 +135,7 @@ export default {
                             body: '店铺中奖了，快点去看吧！'
                         })
                         // 通过弹新链接来唤醒窗口
-                        // window.open('//www.baidu.com')
+                        window.open('//www.baidu.com')
                     }
                 } else {
                     // 没有数据更新继续监控
