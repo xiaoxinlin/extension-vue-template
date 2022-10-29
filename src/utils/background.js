@@ -40,17 +40,29 @@ chrome.storage.onChanged.addListener(changeData => {
 })
 
 const stopFunc = () => {
+    let tIndex = 0;
     window.chrome.storage.local.get(['invokeInterval'], data => {
         window.chrome.tabs.query({}, tabs => {
             if (!!tabs.length) {
-                tabs.forEach((tab, index) => {
+                tabs.forEach((tab) => {
                     if (tab.url.includes('yingxiao.pinduoduo.com/marketing/main/center/odin/list')) {
                         window.chrome.tabs.executeScript(
                             tab.id,
                             {
-                                code: `setTimeout(() => document.querySelector('.anq-modal-foot>.anq-btn-primary').click(), ${index * (data.invokeInterval || 600) + 100});`
+                                code: `
+                                function loop(delay) {
+                                    setTimeout(() => {
+                                        console.log('delay', delay);
+                                        if (document.querySelectorAll('[class*=AdStatus_normal]').length > 0 && delay < 3) {
+                                            document.querySelector('.anq-modal-foot>.anq-btn-primary').click();
+                                            loop(delay + 1);
+                                        }
+                                    }, delay * 3000);
+                                }
+                                setTimeout(() => {loop(0)}, ${tIndex * (data.invokeInterval || 600) + 100});`
                             }
                         )
+                        tIndex++;
                     }
                 })
             }
