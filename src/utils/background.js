@@ -71,6 +71,19 @@ const stopFunc = () => {
     
 }
 
+const planMonitorFunc = () => {
+    // 获取当前tab信息，发现用不到，executeScript不传tabid的话，默认是注入当前标签
+    // chrome.tabs.query({
+    //     active: true,
+    //     windowId: chrome.windows.WINDOW_ID_CURRENT
+    // }, function (tabs) {
+    //     console.log('curTab', tabs, chrome.windows.WINDOW_ID_CURRENT)
+    // });
+    window.chrome.tabs.executeScript({
+        file: '/js/injectFile1.js'
+    })
+}
+
 function executeScript (obj) {
     console.log('bg', window.chrome.tabs, obj)
     const { type, ...data} = obj;
@@ -78,6 +91,8 @@ function executeScript (obj) {
         window.chrome.storage.local.set(data)
     } else if (type === 'stop') {
         stopFunc()
+    } else if (type === 'planMonitor') {
+        planMonitorFunc()
     }
 }
 window.chrome.runtime.onMessage.addListener(executeScript)

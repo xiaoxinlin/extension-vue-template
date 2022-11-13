@@ -33,6 +33,9 @@
                 </span>
             </el-dialog>
         </div>
+        <div style="margin-top: 16px" v-else-if="isPlanPage">
+            <el-button round @click="startPlanMonitor" type="success">一键监控</el-button>
+        </div>
     </div>
 </template>
 
@@ -60,7 +63,8 @@ export default {
                 delay: 0,
                 invokeInterval: 0
             },
-            isHomePage: location.href.includes('mms.pinduoduo.com/home')
+            isHomePage: location.href.includes('mms.pinduoduo.com/home'),
+            isPlanPage:  location.href.includes('/marketing/main/center/odin/list')
         }
     },
     mounted() {
@@ -203,6 +207,12 @@ export default {
             this.$message({
                 message: '配置成功！',
                 type: 'success'
+            })
+        },
+        startPlanMonitor() {
+            // 一键监控
+            window.chrome.runtime.sendMessage({
+                type: 'planMonitor'
             })
         }
     }
