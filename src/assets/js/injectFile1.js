@@ -1,4 +1,4 @@
-console.log('自动监控开始！每次只监控前5条数据，花费>20或者交易额>50就删除数据，监控间隔2秒钟~');
+console.log('自动监控开始！每次只监控前5条数据，花费>20或者交易额>50就删除数据，监控间隔5秒钟~');
 function startMonitor() {
     setTimeout(() => {
         console.log('start....');
@@ -40,6 +40,6 @@ function startMonitor() {
                 startMonitor(); 
             }
         }, 50);
-    }, 2000);
+    }, 5000);
 }
 startMonitor();
