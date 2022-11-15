@@ -4,12 +4,12 @@ function startMonitor() {
         console.log('start....');
         // 刷新表格
         document.querySelector('[class*=CustomTable_filterPanelWrapper_] .anq-dropdown-trigger').click();
-        document.querySelector('[class*=CustomTable_filterPanelWrapper_] [class*=CustomSelect_isActive]').click();
+        document.querySelector('[class*=CustomTable_filterPanelWrapper_] [class*=CustomSelect_option_]:nth-child(2)').click();
 
         // 重试次数
         let retryCount = 0;
         const timer = setInterval(() => {
-            if (!document.querySelector('[class*="anq-spin-container anq-spin-blur"]')) {
+            if (document.querySelector('[class*="anq-spin-container anq-spin-blur"]')) {
                 // 数据更新完了
                 clearInterval(timer);
 
@@ -42,11 +42,12 @@ function startMonitor() {
                 startMonitor(); 
             } else {
                 retryCount++;
-
+                console.log('retryCount', retryCount);
                 // 10秒如果没响应提示
                 if (retryCount > 200) {
                     // 重置重试次数
                     retryCount = 0;
+                    clearInterval(timer);
                     // 新开标签页
                     window.open('//www.baidu.com');
                 }
