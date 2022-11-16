@@ -42,7 +42,6 @@ function startMonitor() {
                 startMonitor(); 
             } else {
                 retryCount++;
-                console.log('retryCount', retryCount);
                 // 10秒如果没响应提示
                 if (retryCount > 200) {
                     // 重置重试次数
