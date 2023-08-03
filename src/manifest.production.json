@@ -18,6 +18,7 @@
     "content_scripts": [{
         "matches": [
             "*://mms.pinduoduo.com/home*",
+            "*://mms.pinduoduo.com/goods/goods_list*",
             "*://yingxiao.pinduoduo.com/marketing/main/center/odin/list*"
         ],
         "css": [

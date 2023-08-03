@@ -3,7 +3,7 @@
         <div>
             <el-button round @click="stopAllFunc" type="warning">一键暂停</el-button>
         </div>
-        <div style="margin-top: 16px" v-if="isHomePage">
+        <div style="margin-top: 16px" v-if="isGoodList">
             <el-button round @click="startFunc" type="success" v-if="autoMonitoringFlag === 0">启动监控</el-button>
             <el-button round @click="stopFunc" type="danger" v-else>停止监控</el-button>
             <el-button round @click="handleAmountAsync" type="primary">值校准</el-button>
@@ -11,14 +11,8 @@
             <el-dialog title="配置" :visible.sync="showTable" width="30%">
                 <h4>开启监控时，待支付跟支付金额得保持跟实时数据一样，不然可能会有bug</h4>
                 <el-form ref="form" :model="formData" label-width="120px" size="mini">
-                    <el-form-item label="待支付">
-                        <el-input v-model="formData.willPayOrder"></el-input>
-                    </el-form-item>
-                    <el-form-item label="待发货">
-                        <el-input v-model="formData.willDeliveryOrder"></el-input>
-                    </el-form-item>
-                    <el-form-item label="支付金额">
-                        <el-input v-model="formData.amount"></el-input>
+                    <el-form-item label="页面总库存">
+                        <el-input v-model="formData.stockCount"></el-input>
                     </el-form-item>
                     <el-form-item label="刷新时间间隔">
                         <el-input v-model="formData.delay" placeholder="单位：毫秒"></el-input>
@@ -32,9 +26,6 @@
                     <el-button type="primary" @click="handleSubmit">确 定</el-button>
                 </span>
             </el-dialog>
-        </div>
-        <div style="margin-top: 16px" v-else-if="isPlanPage">
-            <el-button round @click="startPlanMonitor" type="success">一键监控</el-button>
         </div>
     </div>
 </template>
@@ -52,19 +43,14 @@ export default {
             showTable: false,
             autoMonitoringFlag: 0,
             timer: null,
-            willPayOrder: '0',
-            willDeliveryOrder: '0',
-            amount: '0',
+            stockCount: '0',
             delay: DEFAULT_DELAY,
             formData: {
-                willPayOrder: '0',
-                willDeliveryOrder: '0',
-                amount: '0',
+                stockCount: '0',
                 delay: 0,
                 invokeInterval: 0
             },
-            isHomePage: location.href.includes('mms.pinduoduo.com/home'),
-            isPlanPage:  location.href.includes('/marketing/main/center/odin/list')
+            isGoodList: location.href.includes('mms.pinduoduo.com/goods/goods_list'),
         }
     },
     mounted() {
@@ -72,90 +58,70 @@ export default {
             Notification.requestPermission()
         }
 
-        if (!this.isHomePage) return
-
         // 店铺名称
-        if (document.querySelector('div.user-info-top > div.user-name > p.name')) {
-            this.storeName = document.querySelector('div.user-info-top > div.user-name > p.name').innerText
+        if (document.querySelector('div.user-info-top > div.user-name > div.user-name-name > span.user-name-text')) {
+            this.storeName = document.querySelector('div.user-info-top > div.user-name > div.user-name-name > span.user-name-text').innerText
         }
-
-        // 待支付单数、待发货数
-        if (document.querySelectorAll('.top-data-panel__card__value').length > 0) {
-            const nodeList = document.querySelectorAll('.top-data-panel__card__value')
-            this.willPayOrder = nodeList[0].innerText
-            this.willDeliveryOrder = nodeList[1].innerText
-        }
-
-        // 支付金额
-        if (document.querySelector('.manage-data__panel__card__content_val')) {
-            this.amount = document.querySelector('.manage-data__panel__card__content_val').innerText
-        }
-
-        window.chrome.storage.local.get(['autoMonitoringFlag', 'willPayOrder', 'willDeliveryOrder', 'amount', 'delay'], data => {
-            console.log('local', data)
-            if (!data.willPayOrder || !data.amount || !data.willDeliveryOrder) {
-                console.log('init')
-                // 初始化数据
-                this.delay = DEFAULT_DELAY
-                window.chrome.runtime.sendMessage({
-                    type: 'init',
-                    willPayOrder: this.willPayOrder,
-                    willDeliveryOrder: this.willDeliveryOrder,
-                    amount: this.amount,
-                    delay: this.delay
-                })
-            }
-
-            this.autoMonitoringFlag = data.autoMonitoringFlag || 0
-
-            if (this.autoMonitoringFlag === 1) {
-                // 监测数据是否更新
-                if (this.willPayOrder > data.willPayOrder || this.amount > data.amount || this.willDeliveryOrder > data.willDeliveryOrder) {
-                    this.autoMonitoringFlag = 0
-                    // 更新缓存
-                    window.chrome.storage.local.set({
-                        willPayOrder: this.willPayOrder,
-                        willDeliveryOrder: this.willDeliveryOrder,
-                        amount: this.amount,
-                        autoMonitoringFlag: 0
-                    })
-
-                    window.chrome.runtime.sendMessage({
-                        type: 'stop'
-                    })
-
-                    // 消息提醒
-                    this.$notify({
-                        title: `${new Date().toLocaleTimeString()}已触发停车`,
-                        message: '记得检查直通车状态，以及重启起保证配置数据跟实时数据一致',
-                        duration: 0,
-                        offset: 150,
-                        type: 'warning'
-                    })
-                    // 弹窗提示
-                    // 检查用户是否同意接受通知
-                    if (Notification.permission === 'granted') {
-                        new Notification(this.storeName, {
-                            body: '店铺中奖了，快点去看吧！'
-                        })
-                        // 通过弹新链接来唤醒窗口
-                        window.open('//www.baidu.com')
-                    }
-                } else {
-                    // 没有数据更新继续监控
-                    this.timer = setTimeout(() => {
-                        location.reload()
-                    }, this.delay)
-                }
-            }
-        })
     },
     methods: {
         handleClick() {
-            window.chrome.storage.local.get(['willPayOrder', 'willDeliveryOrder', 'amount', 'delay', 'invokeInterval'], data => {
+            window.chrome.storage.local.get(['delay', 'invokeInterval', 'stockCount'], data => {
                 this.formData = Object.assign({ invokeInterval: DEFAULT_INVOKE_INTERVAL }, data)
             })
             this.toggleTable(true)
+        },
+        _intervalFunc() {
+            window.chrome.storage.local.get(['autoMonitoringFlag', 'delay', 'stockCount'], data => {
+                if (!data.autoMonitoringFlag) return;
+                this.timer = setTimeout(() => {
+                    this.stockCount = 0
+                    const stockEleList = [...document.querySelectorAll('div.TB_body_5-80-0 > div > table > tbody > tr > td:nth-child(10n + 4) > div:nth-child(1)')]
+                    for (const ele of stockEleList) {
+                        this.stockCount += +ele.innerText
+                    }
+                    this.stockCount = `${this.stockCount}`
+                    console.log('监测更新', new Date(), this.stockCount, data.stockCount)
+                    // 监测数据是否更新
+                    if (this.stockCount < data.stockCount && this.stockCount != '0') {
+                        this.autoMonitoringFlag = 0
+                        // 更新缓存
+                        window.chrome.storage.local.set({
+                            stockCount: this.stockCount,
+                            autoMonitoringFlag: 0
+                        })
+
+                        window.chrome.runtime.sendMessage({
+                            type: 'stop'
+                        })
+
+                        // 消息提醒
+                        this.$notify({
+                            title: `${new Date().toLocaleTimeString()}已触发停车`,
+                            message: '记得检查直通车状态，以及重启起保证配置数据跟实时数据一致',
+                            duration: 0,
+                            offset: 150,
+                            type: 'warning'
+                        })
+                        // 弹窗提示
+                        // 检查用户是否同意接受通知
+                        if (Notification.permission === 'granted') {
+                            new Notification(this.storeName, {
+                                body: '店铺中奖了，快点去看吧！'
+                            })
+                            // 通过弹新链接来唤醒窗口
+                            // window.open('//www.baidu.com')
+                        }
+                    } else {
+                        // 刷新数据
+                        if (document.querySelector('div.TB_header_5-80-0.TB_headerSticky_5-80-0.TB_scrollbarOccupySpace_5-80-0 > table > thead > tr > th:nth-child(4)')) {
+                            document.querySelector('div.TB_header_5-80-0.TB_headerSticky_5-80-0.TB_scrollbarOccupySpace_5-80-0 > table > thead > tr > th:nth-child(4)').click()
+                        }
+                        console.log('refresh', new Date())
+                        // 没有数据更新继续监控
+                        this._intervalFunc()
+                    }
+                }, data.delay)
+            })
         },
         startFunc() {
             console.log('start monitor')
@@ -163,7 +129,7 @@ export default {
             window.chrome.storage.local.set({
                 autoMonitoringFlag: 1
             })
-            location.reload()
+            this._intervalFunc()
         },
         stopFunc() {
             console.log('stop monitor')
@@ -185,11 +151,15 @@ export default {
             this.showTable = status
         },
         handleAmountAsync() {
-            const nodeList = document.querySelectorAll('.top-data-panel__card__value')
+            // 总库存
+            this.stockCount = 0
+            const stockEleList = [...document.querySelectorAll('div.TB_body_5-80-0 > div > table > tbody > tr > td:nth-child(10n + 4) > div:nth-child(1)')]
+            for (const ele of stockEleList) {
+                this.stockCount += +ele.innerText
+            }
+            this.stockCount = `${this.stockCount}`
             window.chrome.storage.local.set({
-                willPayOrder: nodeList[0].innerText,
-                willDeliveryOrder: nodeList[1].innerText,
-                amount: document.querySelector('.manage-data__panel__card__content_val').innerText
+                stockCount: this.stockCount
             })
             this.$message({
                 message: '校准成功！',
@@ -209,12 +179,6 @@ export default {
                 type: 'success'
             })
         },
-        startPlanMonitor() {
-            // 一键监控
-            window.chrome.runtime.sendMessage({
-                type: 'planMonitor'
-            })
-        }
     }
 }
 </script>
